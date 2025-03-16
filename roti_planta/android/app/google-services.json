@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "828990764763",
+    "project_id": "vcare-85101",
+    "storage_bucket": "vcare-85101.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:828990764763:android:7c470e1d2c6d1bb286fefe",
+        "android_client_info": {
+          "package_name": "com.example.roti_planta"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwL-ngkwQqNltteQsRCYBbkdCVLn4See4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
