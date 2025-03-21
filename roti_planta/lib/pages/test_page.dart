@@ -8,16 +8,12 @@ class TestPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(location),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
+      appBar: AppBar(title: Text(location)),
       body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(height: 20),
-          const Text('You are on the test page!'),
-          SizedBox(height: 40),
-          Text(location),
+          const Center(child: Text('You are on the test page!')),
+          Center(child: Text(location)),
         ],
       ),
     );

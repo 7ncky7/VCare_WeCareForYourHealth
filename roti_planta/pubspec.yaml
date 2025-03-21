@@ -34,11 +34,15 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+
   firebase_core: ^3.12.1
   firebase_auth: ^5.5.1
   cloud_firestore: ^5.6.5
-  intl: ^0.20.2
   fluttertoast: ^8.2.12
+  intl: ^0.19.0
+  flutter_localizations: # Add this dependency
+    sdk: flutter
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
@@ -62,10 +66,41 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  generate: true
+
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/Logo.png
     - assets/images/Logo with Name and Slogan.png
+    - assets/images/aichat_icon.png
+    - assets/images/alert_icon.png
+    - assets/images/back_icon.png
+    - assets/images/carepoints_icon.png
+    - assets/images/community_icon.png
+    - assets/images/edit_icon.png
+    - assets/images/emergencycontact_icon.png
+    - assets/images/food_icon.png
+    - assets/images/game_icon.png
+    - assets/images/healthboard_icon.png
+    - assets/images/home_icon.png
+    - assets/images/medicine_icon.png
+    - assets/images/microphone_icon.png
+    - assets/images/moon_icon.png
+    - assets/images/profile_icon.png
+    - assets/images/redemption_icon.png
+    - assets/images/robot_icon.png
+    - assets/images/send_icon.png
+    - assets/images/settings_icon.png
+    - assets/images/sugar_icon.png
+    - assets/images/sun_icon.png
+    - assets/images/tick_icon.png
+    - assets/images/wrong_icon.png
+    - assets/images/heartrate_icon.png
+    - assets/images/steps_icon.png
+    - assets/images/bloodpressure_icon.png
+    - assets/images/phone_icon.png
+    - assets/images/message_icon.png
+    - assets/images/upload_icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

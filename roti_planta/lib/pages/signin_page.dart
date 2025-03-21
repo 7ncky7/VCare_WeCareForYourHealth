@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:roti_planta/pages/signup_page.dart';
-import 'package:roti_planta/pages/test_page.dart';
+import 'package:roti_planta/pages/home_page.dart';
+import 'package:roti_planta/pages/signup_page.dart'; // Import SignUpPage for navigation
+//import 'package:roti_planta/pages/test_page.dart'; // Import ShowPage for navigation
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -32,10 +33,10 @@ class _SignInPageState extends State<SignInPage> {
         // Navigate to ShowPage with location 'home'
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => TestPage(location: 'home')),
+          MaterialPageRoute(builder: (context) => HomePage()),
           (route) => false,
         );
-        
+
       } catch (e) {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(

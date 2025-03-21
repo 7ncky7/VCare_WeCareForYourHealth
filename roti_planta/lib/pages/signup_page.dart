@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:roti_planta/pages/test_page.dart';
 import 'package:intl/intl.dart';
-import 'package:roti_planta/pages/signin_page.dart';
-import 'package:roti_planta/pages/test_page.dart';
+import 'package:roti_planta/pages/signin_page.dart'; // For formatting the date
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -59,6 +59,7 @@ class _SignUpPageState extends State<SignUpPage> {
             //'dateOfBirth': _selectedDate != null ? _selectedDate!.toIso8601String() : null,
             'dateOfBirth': _selectedDate?.toIso8601String(), // Store date as ISO string
             'email': _emailController.text.trim(),
+            'carePoints': 0,
           });
 
           // Show success message
@@ -70,7 +71,7 @@ class _SignUpPageState extends State<SignUpPage> {
           //Navigator.pop(context);
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => TestPage(location: 'Sign In')),
+            MaterialPageRoute(builder: (context) => SignInPage()),
           );
 
         } catch (e) {
