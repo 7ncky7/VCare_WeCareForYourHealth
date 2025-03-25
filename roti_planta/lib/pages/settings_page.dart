@@ -64,6 +64,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return Scaffold(
       appBar: AppBar(
+        title: Text(''),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF852745)),
           onPressed: () {
@@ -73,7 +74,7 @@ class _SettingsPageState extends State<SettingsPage> {
             );
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFFD59FA6),
         elevation: 0,
       ),
       body: Container(
@@ -86,17 +87,19 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            padding: const EdgeInsets.only(top: 0, bottom: 0, left: 25, right: 25),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Title: "Settings" with gear icon
                 Row(
                   children: [
+                    const SizedBox(width: 10),
                     const Icon(
                       Icons.settings,
                       color: Color(0xFF852745),
-                      size: 30,
+                      size: 45,
                     ),
                     const SizedBox(width: 10),
                     Text(
@@ -119,7 +122,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           title: localizations?.fontSize ?? 'Font Size',
                           child: Row(
                             children: [
-                              const Text('Small'),
+                              Text(localizations?.fontSizeSmall ?? 'Small'),
                               Expanded(
                                 child: Slider(
                                   value: _fontSize,
@@ -127,10 +130,10 @@ class _SettingsPageState extends State<SettingsPage> {
                                   max: 3,
                                   divisions: 2,
                                   label: _fontSize == 1
-                                      ? 'Small'
+                                      ? localizations?.fontSizeSmall ?? 'Small'
                                       : _fontSize == 2
-                                          ? 'Medium'
-                                          : 'Large',
+                                          ? localizations?.fontSizeMedium ?? 'Medium'
+                                          : localizations?.fontSizeLarge ?? 'Large',
                                   onChanged: (value) {
                                     setState(() {
                                       _fontSize = value;
@@ -138,11 +141,11 @@ class _SettingsPageState extends State<SettingsPage> {
                                   },
                                 ),
                               ),
-                              const Text('Large'),
+                             Text(localizations?.fontSizeLarge ?? 'Large'),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 30),
                         // Theme Section
                         _buildSection(
                           title: localizations?.theme ?? 'Theme',
@@ -171,14 +174,14 @@ class _SettingsPageState extends State<SettingsPage> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 30),
                         // Language Section
                         _buildSection(
                           title: localizations?.language ?? 'Language',
                           child: Column(
                             children: [
                               CheckboxListTile(
-                                title: const Text('English'),
+                                title: Text(localizations?.languageEnglish ?? 'English'),
                                 value: _language == 'en',
                                 onChanged: (value) {
                                   if (value == true) {
@@ -190,7 +193,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 activeColor: const Color(0xFF852745),
                               ),
                               CheckboxListTile(
-                                title: const Text('Malay'),
+                                title: Text(localizations?.languageMalay ?? 'Malay'),
                                 value: _language == 'ms',
                                 onChanged: (value) {
                                   if (value == true) {
@@ -202,7 +205,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 activeColor: const Color(0xFF852745),
                               ),
                               CheckboxListTile(
-                                title: const Text('Chinese'),
+                                title: Text(localizations?.languageChinese ?? 'Chinese'),
                                 value: _language == 'zh',
                                 onChanged: (value) {
                                   if (value == true) {
@@ -216,7 +219,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 30),
                         // Submit Button
                         Center(
                           child: ElevatedButton(
@@ -224,14 +227,15 @@ class _SettingsPageState extends State<SettingsPage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF852745),
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                              // padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                              padding: const EdgeInsets.only(top: 15, bottom: 15, left: 90, right: 90),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
                             child: Text(
                               localizations?.submit ?? 'Submit',
-                              style: const TextStyle(fontSize: 16),
+                              style: const TextStyle(fontSize: 20),
                             ),
                           ),
                         ),
@@ -262,16 +266,18 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(15),
+      //padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.only(top: 15, bottom: 15, left: 20, right: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Color(0xFF852745),
+              decoration: TextDecoration.underline,
             ),
           ),
           const SizedBox(height: 10),

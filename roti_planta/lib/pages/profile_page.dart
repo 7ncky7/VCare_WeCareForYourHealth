@@ -1,13 +1,18 @@
- import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
+import 'package:roti_planta/pages/aichat_page.dart';
+import 'package:roti_planta/pages/aiemotional_page.dart';
+import 'package:roti_planta/pages/aimedicine_page.dart';
+import 'package:roti_planta/pages/aisymptoms_page.dart';
 import 'package:roti_planta/pages/application_page.dart';
+import 'package:roti_planta/pages/dietrec_page.dart';
 import 'package:roti_planta/pages/editinfo_page.dart';
 import 'package:roti_planta/pages/home_page.dart';
+import 'package:roti_planta/pages/minichat_page.dart';
 import 'package:roti_planta/pages/settings_page.dart';
-import 'package:roti_planta/pages/test_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -18,17 +23,16 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   String _lastName = "Loading...";
+  String _greeting = "Loading...";
   int _carePoints = 0;
-  int _currentIndex = 4; // Profile page is selected by default
+  int _currentIndex = 4;
 
-  // Personal Information
   String _fullName = "None";
   String _gender = "None";
   int? _age;
   String _dateOfBirth = "None";
   String _email = "None";
 
-  // Health Details
   double _weight = 0.0;
   double _height = 0.0;
   String _familyHistory = "None";
@@ -37,10 +41,45 @@ class _ProfilePageState extends State<ProfilePage> {
   List<String> _dietaryPreferences = [];
   List<String> _favouriteCuisines = [];
 
-  // Emergency Contact
   String _emergencyName = "None";
   String _emergencyPhoneNumber = "None";
   String _emergencyEmail = "None";
+
+  // Mapping of standardized keys to localized strings
+  final Map<String, String> _genderMap = {
+    'Male': 'genderMale',
+    'Female': 'genderFemale',
+  };
+
+  final Map<String, String> _activityLevelMap = {
+    'Inactive': 'activityLevelInactive',
+    'Sedentary': 'activityLevelSedentary',
+    'Moderately active': 'activityLevelModeratelyActive',
+    'Vigorously active': 'activityLevelVigorouslyActive',
+  };
+
+  final Map<String, String> _foodAllergiesMap = {
+    'Milk': 'foodAllergyMilk',
+    'Eggs': 'foodAllergyEggs',
+    'Shellfish': 'foodAllergyShellfish',
+    'Nuts': 'foodAllergyNuts',
+  };
+
+  final Map<String, String> _dietaryPreferencesMap = {
+    'Halal': 'dietaryPreferenceHalal',
+    'Vegan': 'dietaryPreferenceVegan',
+    'Vegetarian': 'dietaryPreferenceVegetarian',
+    'Meal': 'dietaryPreferenceMeal',
+  };
+
+  final Map<String, String> _favouriteCuisinesMap = {
+    'Malay': 'cuisineMalay',
+    'Japanese': 'cuisineJapanese',
+    'Chinese': 'cuisineChinese',
+    'Korean': 'cuisineKorean',
+    'Western': 'cuisineWestern',
+    'Vietnamese': 'cuisineVietnamese',
+  };
 
   @override
   void initState() {
@@ -48,91 +87,145 @@ class _ProfilePageState extends State<ProfilePage> {
     _fetchUserData();
   }
 
-  // Fetch user data from Firestore
   void _fetchUserData() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      DocumentSnapshot doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      if (doc.exists) {
+      try {
+        DocumentSnapshot doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (doc.exists) {
+          final data = doc.data() as Map<String, dynamic>?;
+
+          if (data != null) {
+            setState(() {
+              // Personal Information
+              _fullName = data['fullName']?.toString().trim().isNotEmpty == true
+                  ? data['fullName'].toString()
+                  : "None";
+              _lastName = _fullName == "None"
+                  ? "User"
+                  : _fullName.split(' ').last;
+              _gender = data['gender']?.toString().trim().isNotEmpty == true
+                  ? data['gender'].toString()
+                  : "None";
+              _age = data['age'] != null ? int.tryParse(data['age'].toString()) : null;
+              if (data['dateOfBirth'] != null) {
+                try {
+                  _dateOfBirth = DateTime.parse(data['dateOfBirth']) as String;
+                  String locale = AppLocalizations.of(context)?.localeName ?? 'en';
+                  _dateOfBirth = DateFormat.yMd(locale).format(DateTime.parse(data['dateOfBirth']));
+                } catch (e) {
+                  _dateOfBirth = "None";
+                }
+              } else {
+                _dateOfBirth = "None";
+              }
+              _email = data['email']?.toString().trim().isNotEmpty == true
+                  ? data['email'].toString()
+                  : "None";
+
+              // Health Details
+              _weight = double.tryParse(data['weight']?.toString() ?? '0.0') ?? 0.0;
+              _height = double.tryParse(data['height']?.toString() ?? '0.0') ?? 0.0;
+              _familyHistory = data['familyHistory']?.toString().trim().isNotEmpty == true
+                  ? data['familyHistory'].toString()
+                  : "None";
+              _activityLevel = data['activityLevel']?.toString().trim().isNotEmpty == true
+                  ? data['activityLevel'].toString()
+                  : "None";
+              _foodAllergies = data['foodAllergies'] != null
+                  ? List<String>.from(data['foodAllergies'])
+                  : [];
+              _dietaryPreferences = data['dietaryPreferences'] != null
+                  ? List<String>.from(data['dietaryPreferences'])
+                  : [];
+              _favouriteCuisines = data['favouriteCuisines'] != null
+                  ? List<String>.from(data['favouriteCuisines'])
+                  : [];
+
+              // Emergency Contact
+              _emergencyName = data['emergencyName']?.toString().trim().isNotEmpty == true
+                  ? data['emergencyName'].toString()
+                  : "None";
+              _emergencyPhoneNumber = data['emergencyPhoneNumber']?.toString().trim().isNotEmpty == true
+                  ? data['emergencyPhoneNumber'].toString()
+                  : "None";
+              _emergencyEmail = data['emergencyEmail']?.toString().trim().isNotEmpty == true
+                  ? data['emergencyEmail'].toString()
+                  : "None";
+
+              // Care Points
+              _carePoints = data['carePoints'] != null
+                  ? int.tryParse(data['carePoints'].toString()) ?? 0
+                  : 0;
+            });
+          }
+        }
+      } catch (e) {
+        print("Error fetching user data: $e");
         setState(() {
-          // Last Name and Care Points
-          _lastName = doc['fullName']?.toString().trim().isEmpty ?? true
-              ? "User"
-              : doc['fullName'].toString().split(' ').last;
-          _carePoints = doc['carePoints'] ?? 0;
-
-          // Personal Information
-          _fullName = doc['fullName']?.toString().trim().isEmpty ?? true
-              ? "None"
-              : doc['fullName'].toString();
-          _gender = doc['gender']?.toString().trim().isEmpty ?? true
-              ? "None"
-              : doc['gender'].toString();
-          _age = doc['age'];
-          _dateOfBirth = doc['dateOfBirth'] != null
-              ? DateFormat('dd-MM-yyyy')
-                  .format(DateTime.parse(doc['dateOfBirth']))
-              : "None";
-          _email = doc['email']?.toString().trim().isEmpty ?? true
-              ? "None"
-              : doc['email'].toString();
-
-          // Health Details
-          _weight = doc['weight'] ?? 0.0;
-          _height = doc['height'] ?? 0.0;
-          _familyHistory = doc['familyHistory']?.toString().trim().isEmpty ?? true
-              ? "None"
-              : doc['familyHistory'].toString();
-          _activityLevel = doc['activityLevel']?.toString().trim().isEmpty ?? true
-              ? "None"
-              : doc['activityLevel'].toString();
-          _foodAllergies = List<String>.from(doc['foodAllergies'] ?? []);
-          _dietaryPreferences = List<String>.from(doc['dietaryPreferences'] ?? []);
-          _favouriteCuisines = List<String>.from(doc['favouriteCuisines'] ?? []);
-
-          // Emergency Contact
-          _emergencyName = doc['emergencyName']?.toString().trim().isEmpty ?? true
-              ? "None"
-              : doc['emergencyName'].toString();
-          _emergencyPhoneNumber =
-              doc['emergencyPhoneNumber']?.toString().trim().isEmpty ?? true
-                  ? "None"
-                  : doc['emergencyPhoneNumber'].toString();
-          _emergencyEmail = doc['emergencyEmail']?.toString().trim().isEmpty ?? true
-              ? "None"
-              : doc['emergencyEmail'].toString();
+          _lastName = "User";
+          _fullName = "None";
+          _gender = "None";
+          _age = null;
+          _dateOfBirth = "None";
+          _email = "None";
+          _weight = 0.0;
+          _height = 0.0;
+          _familyHistory = "None";
+          _activityLevel = "None";
+          _foodAllergies = [];
+          _dietaryPreferences = [];
+          _favouriteCuisines = [];
+          _emergencyName = "None";
+          _emergencyPhoneNumber = "None";
+          _emergencyEmail = "None";
+          _carePoints = 0;
         });
       }
     }
   }
 
-  // Handle bottom navigation bar taps
+  void _setGreeting(BuildContext context) {
+    int hour = DateTime.now().hour;
+    final localizations = AppLocalizations.of(context);
+    if (localizations != null) {
+      if (hour >= 5 && hour < 12) {
+        _greeting = localizations.goodMorning;
+      } else if (hour >= 12 && hour < 17) {
+        _greeting = localizations.goodAfternoon;
+      } else {
+        _greeting = localizations.goodEvening;
+      }
+    } else {
+      _greeting = "Good Morning";
+    }
+    setState(() {});
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _currentIndex = index;
     });
 
     if (index == 0) {
-      // Navigate to Home page
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } else if (index == 1) {
-      // Navigate to AI Chat page
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const TestPage(location: 'AI Chat')),
+        MaterialPageRoute(builder: (context) => const AiChatPage()),
       ).then((_) {
         setState(() {
           _currentIndex = 4;
         });
       });
     } else if (index == 2) {
-      // Navigate to Application page
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ApplicationPage()),
@@ -142,12 +235,11 @@ class _ProfilePageState extends State<ProfilePage> {
         });
       });
     } else if (index == 3) {
-      // Navigate to Diet page
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const DietPage()),
+        MaterialPageRoute(builder: (context) => const DietRecPage()),
       ).then((_) {
-        _fetchUserData(); // Refresh data when returning from Diet page
+        _fetchUserData();
         setState(() {
           _currentIndex = 4;
         });
@@ -157,9 +249,70 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // Helper method to get localized string from standardized key
+  String _getLocalizedString(String key, Map<String, String> map, String defaultValue) {
+    final localizations = AppLocalizations.of(context);
+    final localizationKey = map[key];
+    if (localizationKey == null) return defaultValue;
+    switch (localizationKey) {
+      case 'genderMale':
+        return localizations?.genderMale ?? defaultValue;
+      case 'genderFemale':
+        return localizations?.genderFemale ?? defaultValue;
+      case 'activityLevelInactive':
+        return localizations?.activityLevelInactive ?? defaultValue;
+      case 'activityLevelSedentary':
+        return localizations?.activityLevelSedentary ?? defaultValue;
+      case 'activityLevelModeratelyActive':
+        return localizations?.activityLevelModeratelyActive ?? defaultValue;
+      case 'activityLevelVigorouslyActive':
+        return localizations?.activityLevelVigorouslyActive ?? defaultValue;
+      case 'foodAllergyMilk':
+        return localizations?.foodAllergyMilk ?? defaultValue;
+      case 'foodAllergyEggs':
+        return localizations?.foodAllergyEggs ?? defaultValue;
+      case 'foodAllergyShellfish':
+        return localizations?.foodAllergyShellfish ?? defaultValue;
+      case 'foodAllergyNuts':
+        return localizations?.foodAllergyNuts ?? defaultValue;
+      case 'dietaryPreferenceHalal':
+        return localizations?.dietaryPreferenceHalal ?? defaultValue;
+      case 'dietaryPreferenceVegan':
+        return localizations?.dietaryPreferenceVegan ?? defaultValue;
+      case 'dietaryPreferenceVegetarian':
+        return localizations?.dietaryPreferenceVegetarian ?? defaultValue;
+      case 'dietaryPreferenceMeal':
+        return localizations?.dietaryPreferenceMeal ?? defaultValue;
+      case 'cuisineMalay':
+        return localizations?.cuisineMalay ?? defaultValue;
+      case 'cuisineJapanese':
+        return localizations?.cuisineJapanese ?? defaultValue;
+      case 'cuisineChinese':
+        return localizations?.cuisineChinese ?? defaultValue;
+      case 'cuisineKorean':
+        return localizations?.cuisineKorean ?? defaultValue;
+      case 'cuisineWestern':
+        return localizations?.cuisineWestern ?? defaultValue;
+      case 'cuisineVietnamese':
+        return localizations?.cuisineVietnamese ?? defaultValue;
+      default:
+        return defaultValue;
+    }
+  }
+
+  // Helper method to map a list of standardized keys to localized strings
+  String _mapListToLocalized(List<String> items, Map<String, String> map) {
+    if (items.isEmpty) return "None";
+    return items.map((item) => _getLocalizedString(item, map, item)).join(', ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setGreeting(context);
+    });
 
     return Scaffold(
       body: Container(
@@ -172,29 +325,35 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Display "Hi <Last Name>" and Care Points
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Hi $_lastName',
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                            color: const Color(0xFF852745),
-                            fontWeight: FontWeight.bold,
-                          ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${localizations?.hi ?? 'Hi'} $_lastName,',
+                          style: Theme.of(context).textTheme.headlineLarge,
+                        ),
+                        Text(
+                          _greeting,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        SizedBox(height: 5),
+                      ],
                     ),
                     Stack(
                       alignment: Alignment.center,
                       children: [
-                        Image.asset('assets/images/carepoints_icon.png', height: 70),
+                        Image.asset('assets/images/carepoints_icon.png', height: 75),
                         Text(
                           '$_carePoints',
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF852745),
                           ),
@@ -203,9 +362,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-
-                // 2. Peach Box with Personal Info, Health Details, and Emergency Contact
+                const SizedBox(height: 5),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Card(
@@ -215,11 +372,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       color: const Color(0xFFFFE5D9),
                       child: Padding(
-                        padding: const EdgeInsets.all(15),
+                        padding: const EdgeInsets.only(top: 2, left: 23, right: 23, bottom: 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Icons for Edit and Settings
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
@@ -231,10 +387,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                   onPressed: () {
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(
-                                          builder: (context) => const EditInfoPage()),
+                                      MaterialPageRoute(builder: (context) => const EditInfoPage()),
                                     ).then((_) => _fetchUserData());
                                   },
+                                  iconSize: 30.0,
                                 ),
                                 IconButton(
                                   icon: const Icon(
@@ -244,52 +400,43 @@ class _ProfilePageState extends State<ProfilePage> {
                                   onPressed: () {
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(
-                                          builder: (context) => const SettingsPage()),
+                                      MaterialPageRoute(builder: (context) => const SettingsPage()),
                                     );
                                   },
+                                  iconSize: 30.0,
                                 ),
                               ],
                             ),
-
-                            // 3. Personal Information
                             _buildSection(
-                              title: '',
+                              title: localizations?.personalInformation ?? 'Personal Details',
                               children: [
-                                _buildInfoField('Full Name:', _fullName),
-                                _buildInfoField('Gender:', _gender),
-                                _buildInfoField('Age:', _age?.toString() ?? 'None'),
-                                _buildInfoField('Date of Birth:', _dateOfBirth),
-                                _buildInfoField('Email Address:', _email),
+                                _buildInfoField(localizations?.fullName ?? 'Full Name:', _fullName),
+                                _buildInfoField(localizations?.gender ?? 'Gender:', _gender == "None" ? "None" : _getLocalizedString(_gender, _genderMap, _gender)),
+                                _buildInfoField(localizations?.age ?? 'Age:', _age?.toString() ?? 'None'),
+                                _buildInfoField(localizations?.dateOfBirth ?? 'Date of Birth:', _dateOfBirth),
+                                _buildInfoField(localizations?.emailAddress ?? 'Email Address:', _email),
                               ],
                             ),
-                            const SizedBox(height: 20),
-
-                            // 4. Health Details (First White Box)
+                            const SizedBox(height: 30),
                             _buildSection(
-                              title: 'Health Details',
+                              title: localizations?.healthDetails ?? 'Health Details',
                               children: [
-                                _buildInfoField('Weight (cm):', _weight.toString()),
-                                _buildInfoField('Height (cm):', _height.toString()),
-                                _buildInfoField('Family History:', _familyHistory),
-                                _buildInfoField('Activity Level:', _activityLevel),
-                                _buildInfoField('Food Allergies:',
-                                    _foodAllergies.isEmpty ? 'None' : _foodAllergies.join(', ')),
-                                _buildInfoField('Dietary Preference:',
-                                    _dietaryPreferences.isEmpty ? 'None' : _dietaryPreferences.join(', ')),
-                                _buildInfoField('Favourite Cuisine:',
-                                    _favouriteCuisines.isEmpty ? 'None' : _favouriteCuisines.join(', ')),
+                                _buildInfoField(localizations?.weight ?? 'Weight (kg):', _weight.toString()),
+                                _buildInfoField(localizations?.height ?? 'Height (cm):', _height.toString()),
+                                _buildInfoField(localizations?.familyHistory ?? 'Family History:', _familyHistory),
+                                _buildInfoField(localizations?.activityLevel ?? 'Activity Level:', _activityLevel == "None" ? "None" : _getLocalizedString(_activityLevel, _activityLevelMap, _activityLevel)),
+                                _buildInfoField(localizations?.foodAllergies ?? 'Food Allergies:', _mapListToLocalized(_foodAllergies, _foodAllergiesMap)),
+                                _buildInfoField(localizations?.dietaryPreference ?? 'Dietary Preference:', _mapListToLocalized(_dietaryPreferences, _dietaryPreferencesMap)),
+                                _buildInfoField(localizations?.favouriteCuisine ?? 'Favourite Cuisine:', _mapListToLocalized(_favouriteCuisines, _favouriteCuisinesMap)),
                               ],
                             ),
-                            const SizedBox(height: 20),
-
-                            // 5. Emergency Contact (Second White Box)
+                            const SizedBox(height: 30),
                             _buildSection(
-                              title: 'Emergency Contact',
+                              title: localizations?.emergencyContact ?? 'Emergency Contact',
                               children: [
-                                _buildInfoField('Name:', _emergencyName),
-                                _buildInfoField('Contact Number:', _emergencyPhoneNumber),
-                                _buildInfoField('Email Address:', _emergencyEmail),
+                                _buildInfoField(localizations?.emergencyName ?? 'Name:', _emergencyName),
+                                _buildInfoField(localizations?.emergencyContactNumber ?? 'Contact Number:', _emergencyPhoneNumber),
+                                _buildInfoField(localizations?.emergencyEmailAddress ?? 'Email Address:', _emergencyEmail),
                               ],
                             ),
                           ],
@@ -303,8 +450,67 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
       ),
-
-      // 6. Bottom Navigation Bar
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => Container(
+              height: MediaQuery.of(context).size.height * 0.8,
+              child: MiniChatWidget(
+                currentPage: "ProfilePage",
+                onNavigateToProfile: () {
+                  Navigator.pop(context); // Close the chatbot
+                },
+                onNavigateToApps: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ApplicationPage()),
+                  );
+                },
+                onNavigateToDiet: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const DietRecPage()),
+                  );
+                },
+                onNavigateToAiChat: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AiChatPage()),
+                  );
+                },
+                onNavigateToEmotionalSupport: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AiEmotionalPage()),
+                  );
+                },
+                onNavigateToCheckSymptoms: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AiSymptomsPage()),
+                  );
+                },
+                onNavigateToMedicineRecommendation: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AiMedicinePage()),
+                  );
+                },
+              ),
+            ),
+          );
+        },
+        child: Icon(Icons.chat, color: Colors.white),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onItemTapped,
@@ -347,7 +553,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
               ],
             ),
-            label: localizations?.aiChat ?? 'AI CHAT',
+            label: localizations?.aiChatNavBar ?? 'AI CHAT',
           ),
           BottomNavigationBarItem(
             icon: Stack(
@@ -404,11 +610,13 @@ class _ProfilePageState extends State<ProfilePage> {
             label: localizations?.profile ?? 'PROFILE',
           ),
         ],
+        selectedLabelStyle: TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
 
-  // Helper method to build a section with a shadow
   Widget _buildSection({required String title, required List<Widget> children}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -417,12 +625,12 @@ class _ProfilePageState extends State<ProfilePage> {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 23,
               fontWeight: FontWeight.bold,
               color: Color(0xFF852745),
             ),
           ),
-        if (title.isNotEmpty) const SizedBox(height: 10),
+        if (title.isNotEmpty) const SizedBox(height: 5),
         if (title.isNotEmpty)
           Container(
             decoration: BoxDecoration(
@@ -437,7 +645,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ],
             ),
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.only(top: 8, left: 12, right: 10, bottom: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: children,
@@ -448,7 +656,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Helper method to build an info field with a label and value
   Widget _buildInfoField(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
@@ -473,86 +680,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// Placeholder for HomePage (already defined in your previous code)
-// class HomePage extends StatelessWidget {
-//   const HomePage({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Home'),
-//       ),
-//       body: const Center(child: Text('Home Page')),
-//     );
-//   }
-// }
-
-// Placeholder for TestPage (already defined in your previous code)
-// class TestPage extends StatelessWidget {
-//   final String location;
-//   const TestPage({super.key, required this.location});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text(location),
-//       ),
-//       body: const Center(child: Text('AI Chat Page')),
-//     );
-//   }
-// }
-
-// // Placeholder for ApplicationPage (already defined in your previous code)
-// class ApplicationPage extends StatelessWidget {
-//   const ApplicationPage({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Applications'),
-//       ),
-//       body: const Center(child: Text('Application Page')),
-//     );
-//   }
-// }
-
-// Placeholder for DietPage (already defined in your previous code)
-class DietPage extends StatelessWidget {
-  const DietPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Diet'),
-      ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () async {
-            User? user = FirebaseAuth.instance.currentUser;
-            if (user != null) {
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(user.uid)
-                  .update({
-                'carePoints': FieldValue.increment(1),
-              });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Diet recorded! Care Points updated.')),
-              );
-            }
-          },
-          child: const Text('Record Diet'),
-        ),
       ),
     );
   }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:roti_planta/pages/home_page.dart';
 import 'package:intl/intl.dart';
 import 'package:roti_planta/pages/profile_page.dart';
 
@@ -38,6 +37,7 @@ class _EditInfoPageState extends State<EditInfoPage> {
     'Halal': false,
     'Vegan': false,
     'Vegetarian': false,
+    'Meal': false,
   };
   final Map<String, bool> _favouriteCuisines = {
     'Malay': false,
@@ -53,6 +53,42 @@ class _EditInfoPageState extends State<EditInfoPage> {
   final _emergencyContactController = TextEditingController();
   final _emergencyEmailController = TextEditingController();
 
+  // Mapping of standardized keys to localized strings
+  final Map<String, String> _genderMap = {
+    'Male': 'genderMale',
+    'Female': 'genderFemale',
+  };
+
+  final Map<String, String> _activityLevelMap = {
+    'Inactive': 'activityLevelInactive',
+    'Sedentary': 'activityLevelSedentary',
+    'Moderately active': 'activityLevelModeratelyActive',
+    'Vigorously active': 'activityLevelVigorouslyActive',
+  };
+
+  final Map<String, String> _foodAllergiesMap = {
+    'Milk': 'foodAllergyMilk',
+    'Eggs': 'foodAllergyEggs',
+    'Shellfish': 'foodAllergyShellfish',
+    'Nuts': 'foodAllergyNuts',
+  };
+
+  final Map<String, String> _dietaryPreferencesMap = {
+    'Halal': 'dietaryPreferenceHalal',
+    'Vegan': 'dietaryPreferenceVegan',
+    'Vegetarian': 'dietaryPreferenceVegetarian',
+    'Meal': 'dietaryPreferenceMeal',
+  };
+
+  final Map<String, String> _favouriteCuisinesMap = {
+    'Malay': 'cuisineMalay',
+    'Japanese': 'cuisineJapanese',
+    'Chinese': 'cuisineChinese',
+    'Korean': 'cuisineKorean',
+    'Western': 'cuisineWestern',
+    'Vietnamese': 'cuisineVietnamese',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -66,7 +102,7 @@ class _EditInfoPageState extends State<EditInfoPage> {
       DocumentReference userDocRef = FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid);
-      
+
       DocumentSnapshot doc = await userDocRef.get();
 
       // If the document doesn't exist, initialize it with default values
@@ -74,7 +110,7 @@ class _EditInfoPageState extends State<EditInfoPage> {
         await userDocRef.set({
           // Personal Information
           'fullName': null,
-          'gender': 'Male', // Default value
+          'gender': 'Male', // Default value (standardized key)
           'dateOfBirth': null,
           'age': null,
           'email': user.email, // Use the email from Firebase Auth if available
@@ -84,7 +120,7 @@ class _EditInfoPageState extends State<EditInfoPage> {
           'height': 0.0,
           'glucoseLevel': 0.0,
           'familyHistory': null,
-          'activityLevel': 'Inactive', // Default value
+          'activityLevel': 'Inactive', // Default value (standardized key)
           'foodAllergies': [],
           'dietaryPreferences': [],
           'favouriteCuisines': [],
@@ -107,7 +143,8 @@ class _EditInfoPageState extends State<EditInfoPage> {
           _gender = doc['gender'] ?? 'Male';
           if (doc['dateOfBirth'] != null) {
             _dateOfBirth = DateTime.parse(doc['dateOfBirth']);
-            _dateOfBirthController.text = DateFormat('dd-MM-yyyy').format(_dateOfBirth!);
+            String locale = AppLocalizations.of(context)?.localeName ?? 'en';
+            _dateOfBirthController.text = DateFormat.yMd(locale).format(_dateOfBirth!);
             _age = DateTime.now().year - _dateOfBirth!.year;
           } else {
             _dateOfBirthController.text = 'None';
@@ -166,62 +203,135 @@ class _EditInfoPageState extends State<EditInfoPage> {
     if (picked != null && picked != _dateOfBirth) {
       setState(() {
         _dateOfBirth = picked;
-        _dateOfBirthController.text = DateFormat('dd-MM-yyyy').format(picked);
+        String locale = AppLocalizations.of(context)?.localeName ?? 'en';
+        _dateOfBirthController.text = DateFormat.yMd(locale).format(picked);
         _age = DateTime.now().year - picked.year;
       });
     }
+  }
+
+  // Helper method to get localized string from standardized key
+  String _getLocalizedString(String key, Map<String, String> map, String defaultValue) {
+    final localizations = AppLocalizations.of(context);
+    final localizationKey = map[key];
+    if (localizationKey == null) return defaultValue;
+    switch (localizationKey) {
+      case 'genderMale':
+        return localizations?.genderMale ?? defaultValue;
+      case 'genderFemale':
+        return localizations?.genderFemale ?? defaultValue;
+      case 'activityLevelInactive':
+        return localizations?.activityLevelInactive ?? defaultValue;
+      case 'activityLevelSedentary':
+        return localizations?.activityLevelSedentary ?? defaultValue;
+      case 'activityLevelModeratelyActive':
+        return localizations?.activityLevelModeratelyActive ?? defaultValue;
+      case 'activityLevelVigorouslyActive':
+        return localizations?.activityLevelVigorouslyActive ?? defaultValue;
+      case 'foodAllergyMilk':
+        return localizations?.foodAllergyMilk ?? defaultValue;
+      case 'foodAllergyEggs':
+        return localizations?.foodAllergyEggs ?? defaultValue;
+      case 'foodAllergyShellfish':
+        return localizations?.foodAllergyShellfish ?? defaultValue;
+      case 'foodAllergyNuts':
+        return localizations?.foodAllergyNuts ?? defaultValue;
+      case 'dietaryPreferenceHalal':
+        return localizations?.dietaryPreferenceHalal ?? defaultValue;
+      case 'dietaryPreferenceVegan':
+        return localizations?.dietaryPreferenceVegan ?? defaultValue;
+      case 'dietaryPreferenceVegetarian':
+        return localizations?.dietaryPreferenceVegetarian ?? defaultValue;
+      case 'dietaryPreferenceMeal':
+        return localizations?.dietaryPreferenceMeal ?? defaultValue;
+      case 'cuisineMalay':
+        return localizations?.cuisineMalay ?? defaultValue;
+      case 'cuisineJapanese':
+        return localizations?.cuisineJapanese ?? defaultValue;
+      case 'cuisineChinese':
+        return localizations?.cuisineChinese ?? defaultValue;
+      case 'cuisineKorean':
+        return localizations?.cuisineKorean ?? defaultValue;
+      case 'cuisineWestern':
+        return localizations?.cuisineWestern ?? defaultValue;
+      case 'cuisineVietnamese':
+        return localizations?.cuisineVietnamese ?? defaultValue;
+      default:
+        return defaultValue;
+    }
+  }
+
+  // Helper method to get standardized key from localized string
+  String _getStandardizedKey(String localizedValue, Map<String, String> map) {
+    final localizations = AppLocalizations.of(context);
+    for (var entry in map.entries) {
+      String localizedString = _getLocalizedString(entry.key, map, entry.key);
+      if (localizedString == localizedValue) {
+        return entry.key;
+      }
+    }
+    return localizedValue; // Fallback to the localized value if no match is found
   }
 
   // Save updated data to Firestore
   void _saveData() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .set({
-        // Personal Information
-        'fullName': _fullNameController.text == 'None' ? null : _fullNameController.text,
-        'gender': _gender,
-        'dateOfBirth': _dateOfBirth?.toIso8601String(),
-        'age': _age,
-        'email': _emailController.text == 'None' ? null : _emailController.text,
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .set({
+          // Personal Information
+          'fullName': _fullNameController.text == 'None' ? null : _fullNameController.text,
+          'gender': _gender,
+          'dateOfBirth': _dateOfBirth?.toIso8601String(),
+          'age': _age,
+          'email': _emailController.text == 'None' ? null : _emailController.text,
 
-        // Health Details
-        'weight': double.tryParse(_weightController.text) ?? 0.0,
-        'height': double.tryParse(_heightController.text) ?? 0.0,
-        'glucoseLevel': double.tryParse(_glucoseLevelController.text) ?? 0.0,
-        'familyHistory': _familyHistoryController.text == 'None' ? null : _familyHistoryController.text,
-        'activityLevel': _activityLevel,
-        'foodAllergies': _foodAllergies.entries
-            .where((entry) => entry.value)
-            .map((entry) => entry.key)
-            .toList(),
-        'dietaryPreferences': _dietaryPreferences.entries
-            .where((entry) => entry.value)
-            .map((entry) => entry.key)
-            .toList(),
-        'favouriteCuisines': _favouriteCuisines.entries
-            .where((entry) => entry.value)
-            .map((entry) => entry.key)
-            .toList(),
+          // Health Details
+          'weight': double.tryParse(_weightController.text) ?? 0.0,
+          'height': double.tryParse(_heightController.text) ?? 0.0,
+          'glucoseLevel': double.tryParse(_glucoseLevelController.text) ?? 0.0,
+          'familyHistory': _familyHistoryController.text == 'None' ? null : _familyHistoryController.text,
+          'activityLevel': _activityLevel,
+          'foodAllergies': _foodAllergies.entries
+              .where((entry) => entry.value)
+              .map((entry) => entry.key)
+              .toList(),
+          'dietaryPreferences': _dietaryPreferences.entries
+              .where((entry) => entry.value)
+              .map((entry) => entry.key)
+              .toList(),
+          'favouriteCuisines': _favouriteCuisines.entries
+              .where((entry) => entry.value)
+              .map((entry) => entry.key)
+              .toList(),
 
-        // Emergency Contact
-        'emergencyName': _emergencyNameController.text == 'None' ? null : _emergencyNameController.text,
-        'emergencyPhoneNumber': _emergencyContactController.text == 'None' ? null : _emergencyContactController.text,
-        'emergencyEmail': _emergencyEmailController.text == 'None' ? null : _emergencyEmailController.text,
-      }, SetOptions(merge: true));
+          // Emergency Contact
+          'emergencyName': _emergencyNameController.text == 'None' ? null : _emergencyNameController.text,
+          'emergencyPhoneNumber': _emergencyContactController.text == 'None' ? null : _emergencyContactController.text,
+          'emergencyEmail': _emergencyEmailController.text == 'None' ? null : _emergencyEmailController.text,
+        }, SetOptions(merge: true));
 
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Information updated successfully!')),
-      );
+        // Show success message
+        final localizations = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(localizations?.infoUpdatedSuccess ?? 'Information updated successfully!')),
+        );
 
-      // Navigate back to HomePage
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const ProfilePage()),
-      );
+        // Navigate back to ProfilePage
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfilePage()),
+        );
+      } catch (e) {
+        print("Error saving data: $e");
+        final localizations = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(localizations?.errorSavingData ?? 'Error saving data. Please try again.')),
+        );
+      }
     }
   }
 
@@ -231,6 +341,7 @@ class _EditInfoPageState extends State<EditInfoPage> {
 
     return Scaffold(
       appBar: AppBar(
+        title: Text(''),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF852745)),
           onPressed: () {
@@ -240,7 +351,7 @@ class _EditInfoPageState extends State<EditInfoPage> {
             );
           },
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFFD59FA6),
         elevation: 0,
       ),
       body: Container(
@@ -253,21 +364,22 @@ class _EditInfoPageState extends State<EditInfoPage> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            padding: const EdgeInsets.only(top: 0, bottom: 0, left: 10, right: 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 1. Icon and "Edit" Title
                 Row(
                   children: [
+                    const SizedBox(width: 30),
                     const Icon(
                       Icons.edit,
                       color: Color(0xFF852745),
-                      size: 30,
+                      size: 45,
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      'Edit',
+                      localizations?.edit ?? 'Edit',
                       style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                             color: const Color(0xFF852745),
                             fontWeight: FontWeight.bold,
@@ -275,7 +387,7 @@ class _EditInfoPageState extends State<EditInfoPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 5),
 
                 // 2. Peach Box Containing Three White Boxes
                 Expanded(
@@ -287,114 +399,122 @@ class _EditInfoPageState extends State<EditInfoPage> {
                       ),
                       color: const Color(0xFFFFE5D9),
                       child: Padding(
-                        padding: const EdgeInsets.all(15),
+                        padding: const EdgeInsets.only(top: 18, bottom: 20, left: 20, right: 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // 3. First White Box: Personal Information
                             _buildSection(
-                              title: 'Personal Information',
+                              title: localizations?.personalInformation ?? 'Personal Information',
                               children: [
-                                _buildInfoField('Full Name:', _fullNameController),
+                                _buildInfoField(localizations?.fullName ?? 'Full Name:', _fullNameController),
                                 _buildRadioField(
-                                  title: 'Gender:',
+                                  title: localizations?.gender ?? 'Gender:',
                                   value: _gender,
-                                  options: const ['Male', 'Female'],
+                                  options: [
+                                    _getLocalizedString('Male', _genderMap, 'Male'),
+                                    _getLocalizedString('Female', _genderMap, 'Female'),
+                                  ],
                                   onChanged: (value) {
                                     setState(() {
-                                      _gender = value;
+                                      _gender = _getStandardizedKey(value!, _genderMap);
                                     });
                                   },
                                 ),
-                                _buildInfoField('Age:', null, value: _age?.toString() ?? 'None', enabled: false),
-                                _buildInfoField('Date of Birth:', _dateOfBirthController, onTap: () => _selectDate(context)),
-                                _buildInfoField('Email Address:', _emailController),
+                                _buildInfoField(localizations?.age ?? 'Age:', null, value: _age?.toString() ?? 'None', enabled: false),
+                                _buildInfoField(localizations?.dateOfBirth ?? 'Date of Birth:', _dateOfBirthController, onTap: () => _selectDate(context)),
+                                _buildInfoField(localizations?.emailAddress ?? 'Email Address:', _emailController),
                               ],
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 30),
 
                             // 4. Second White Box: Health Details
                             _buildSection(
-                              title: 'Health Details',
+                              title: localizations?.healthDetails ?? 'Health Details',
                               children: [
-                                _buildInfoField('Weight (cm):', _weightController),
-                                _buildInfoField('Height (cm):', _heightController),
-                                // _buildInfoField('Glucose Level (mg/dL):', _glucoseLevelController),
-                                _buildInfoField('Family History:', _familyHistoryController),
+                                _buildInfoField(localizations?.weight ?? 'Weight (kg):', _weightController),
+                                _buildInfoField(localizations?.height ?? 'Height (cm):', _heightController),
+                                _buildInfoField(localizations?.familyHistory ?? 'Family History:', _familyHistoryController),
                                 _buildRadioField(
-                                  title: 'Activity Level:',
+                                  title: localizations?.activityLevel ?? 'Activity Level:',
                                   value: _activityLevel,
-                                  options: const ['Inactive', 'Sedentary', 'Moderately active', 'Vigorously active'],
+                                  options: [
+                                    _getLocalizedString('Inactive', _activityLevelMap, 'Inactive'),
+                                    _getLocalizedString('Sedentary', _activityLevelMap, 'Sedentary'),
+                                    _getLocalizedString('Moderately active', _activityLevelMap, 'Moderately active'),
+                                    _getLocalizedString('Vigorously active', _activityLevelMap, 'Vigorously active'),
+                                  ],
                                   onChanged: (value) {
                                     setState(() {
-                                      _activityLevel = value;
+                                      _activityLevel = _getStandardizedKey(value!, _activityLevelMap);
                                     });
                                   },
                                   isColumn: true,
                                 ),
                                 _buildCheckboxField(
-                                  title: 'Food Allergies:',
+                                  title: localizations?.foodAllergies ?? 'Food Allergies:',
                                   options: _foodAllergies,
                                   onChanged: (key, value) {
                                     setState(() {
                                       _foodAllergies[key] = value;
                                     });
                                   },
+                                  displayMap: _foodAllergiesMap,
                                 ),
                                 _buildCheckboxField(
-                                  title: 'Dietary Preference:',
+                                  title: localizations?.dietaryPreference ?? 'Dietary Preference:',
                                   options: _dietaryPreferences,
                                   onChanged: (key, value) {
                                     setState(() {
                                       _dietaryPreferences[key] = value;
                                     });
                                   },
+                                  displayMap: _dietaryPreferencesMap,
                                 ),
                                 _buildCheckboxField(
-                                  title: 'Favourite Cuisine:',
+                                  title: localizations?.favouriteCuisine ?? 'Favourite Cuisine:',
                                   options: _favouriteCuisines,
                                   onChanged: (key, value) {
                                     setState(() {
                                       _favouriteCuisines[key] = value;
                                     });
                                   },
+                                  displayMap: _favouriteCuisinesMap,
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 30),
 
                             // 5. Third White Box: Emergency Contact
                             _buildSection(
-                              title: 'Emergency Contact',
+                              title: localizations?.emergencyContact ?? 'Emergency Contact',
                               children: [
-                                _buildInfoField('Name:', _emergencyNameController),
-                                _buildInfoField('Contact Number:', _emergencyContactController),
-                                _buildInfoField('Email Address:', _emergencyEmailController),
+                                _buildInfoField(localizations?.emergencyName ?? 'Name:', _emergencyNameController),
+                                _buildInfoField(localizations?.emergencyContactNumber ?? 'Contact Number:', _emergencyContactController),
+                                _buildInfoField(localizations?.emergencyEmailAddress ?? 'Email Address:', _emergencyEmailController),
                               ],
+                            ),
+                            const SizedBox(height: 30),
+                            Center(
+                              child: ElevatedButton(
+                                onPressed: _saveData,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF852745),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.only(top: 15, bottom: 15, left: 90, right: 90),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: Text(
+                                  localizations?.submit ?? 'Submit',
+                                  style: const TextStyle(fontSize: 20),
+                                ),
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ),
-                ),
-
-                // 6. Submit Button
-                const SizedBox(height: 20),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _saveData,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF852745),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text(
-                      'Submit',
-                      style: TextStyle(fontSize: 16),
                     ),
                   ),
                 ),
@@ -421,19 +541,20 @@ class _EditInfoPageState extends State<EditInfoPage> {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.only(top: 10, bottom: 10, left: 13, right: 13),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Color(0xFF852745),
+              decoration: TextDecoration.underline,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 5),
           ...children,
         ],
       ),
@@ -443,7 +564,7 @@ class _EditInfoPageState extends State<EditInfoPage> {
   // Helper method to build an info field with a label and editable text
   Widget _buildInfoField(String label, TextEditingController? controller, {VoidCallback? onTap, bool enabled = true, String? value}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.only(top: 0, bottom: 5, left: 3, right: 3),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -454,7 +575,6 @@ class _EditInfoPageState extends State<EditInfoPage> {
               color: Color(0xFF852745),
             ),
           ),
-          const SizedBox(width: 10),
           Expanded(
             child: controller != null
                 ? TextField(
@@ -492,7 +612,7 @@ class _EditInfoPageState extends State<EditInfoPage> {
     bool isColumn = false,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.only(top: 0, bottom: 5, left: 3, right: 3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -503,7 +623,6 @@ class _EditInfoPageState extends State<EditInfoPage> {
               color: Color(0xFF852745),
             ),
           ),
-          const SizedBox(height: 5),
           isColumn
               ? Column(
                   children: options.map((option) {
@@ -511,7 +630,7 @@ class _EditInfoPageState extends State<EditInfoPage> {
                       children: [
                         Radio<String>(
                           value: option,
-                          groupValue: value,
+                          groupValue: value != null ? _getLocalizedString(value, isColumn ? _activityLevelMap : _genderMap, value) : null,
                           onChanged: onChanged,
                           activeColor: const Color(0xFF852745),
                         ),
@@ -526,7 +645,7 @@ class _EditInfoPageState extends State<EditInfoPage> {
                       children: [
                         Radio<String>(
                           value: option,
-                          groupValue: value,
+                          groupValue: value != null ? _getLocalizedString(value, isColumn ? _activityLevelMap : _genderMap, value) : null,
                           onChanged: onChanged,
                           activeColor: const Color(0xFF852745),
                         ),
@@ -546,9 +665,10 @@ class _EditInfoPageState extends State<EditInfoPage> {
     required String title,
     required Map<String, bool> options,
     required Function(String, bool) onChanged,
+    required Map<String, String> displayMap,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.only(top: 5, bottom: 5, left: 3, right: 3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -559,9 +679,8 @@ class _EditInfoPageState extends State<EditInfoPage> {
               color: Color(0xFF852745),
             ),
           ),
-          const SizedBox(height: 5),
           Column(
-            children: _buildCheckboxRows(options, onChanged),
+            children: _buildCheckboxRows(options, onChanged, displayMap),
           ),
         ],
       ),
@@ -569,7 +688,7 @@ class _EditInfoPageState extends State<EditInfoPage> {
   }
 
   // Helper method to build checkbox rows (2 items per row)
-  List<Widget> _buildCheckboxRows(Map<String, bool> options, Function(String, bool) onChanged) {
+  List<Widget> _buildCheckboxRows(Map<String, bool> options, Function(String, bool) onChanged, Map<String, String> displayMap) {
     List<Widget> rows = [];
     List<String> keys = options.keys.toList();
     for (int i = 0; i < keys.length; i += 2) {
@@ -586,7 +705,7 @@ class _EditInfoPageState extends State<EditInfoPage> {
                     },
                     activeColor: const Color(0xFF852745),
                   ),
-                  Text(keys[i]),
+                  Text(_getLocalizedString(keys[i], displayMap, keys[i])),
                 ],
               ),
             ),
@@ -601,7 +720,7 @@ class _EditInfoPageState extends State<EditInfoPage> {
                       },
                       activeColor: const Color(0xFF852745),
                     ),
-                    Text(keys[i + 1]),
+                    Text(_getLocalizedString(keys[i + 1], displayMap, keys[i + 1])),
                   ],
                 ),
               ),

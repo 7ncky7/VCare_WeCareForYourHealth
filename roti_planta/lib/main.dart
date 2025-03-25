@@ -1,44 +1,16 @@
-// import 'package:flutter/material.dart';
-// import 'package:firebase_core/firebase_core.dart';
-// import 'package:roti_planta/firebase_options.dart';
-// import 'package:roti_planta/pages/landing_page.dart';
-
-
-// Future<void> main() async{
-//   WidgetsFlutterBinding.ensureInitialized();
-//   await Firebase.initializeApp(
-//     options: DefaultFirebaseOptions.currentPlatform,
-//   );
-//   runApp(const MyApp());
-// }
-
-// class MyApp extends StatelessWidget {
-//   const MyApp({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       home: LandingPage()
-//     );
-//   }
-// }
-
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-// import 'package:roti_planta/pages/editinfo_page.dart';
-// import 'package:roti_planta/pages/home_page.dart';
 import 'package:roti_planta/pages/landing_page.dart';
-// import 'package:roti_planta/pages/profile_page.dart';
-// import 'package:roti_planta/pages/signin_page.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  // Enable Firestore offline persistence
+  FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true);
   runApp(MyApp());
 }
 
@@ -50,6 +22,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   double _fontScale = 1.0; // Default to medium
   Locale _locale = Locale('en'); // Default to English
+  bool _isLoading = true; // Add loading state
 
   @override
   void initState() {
@@ -59,44 +32,111 @@ class _MyAppState extends State<MyApp> {
 
   // Load user settings from Firestore
   void _loadSettings() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      DocumentSnapshot doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      if (doc.exists) {
-        String fontSize = doc['fontSize'] ?? 'medium';
+    try {
+      // Wait for authentication state to resolve
+      User? user = await FirebaseAuth.instance.authStateChanges().first;
+      if (user == null) {
+        print("No user logged in. Using default locale: $_locale");
+        setState(() {
+          _isLoading = false; // Stop loading
+        });
+        return;
+      }
+
+      print("Logged-in user UID: ${user.uid}"); // Log the UID
+
+      // Initial fetch with retry mechanism
+      DocumentSnapshot? doc;
+      int retries = 3;
+      for (int i = 0; i < retries; i++) {
+        try {
+          doc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get();
+          break; // Success, exit the retry loop
+        } catch (e) {
+          print("Firestore fetch attempt ${i + 1} failed: $e");
+          if (i == retries - 1) {
+            print("All retries failed. Using default locale: $_locale");
+            setState(() {
+              _isLoading = false; // Stop loading
+            });
+            return;
+          }
+          await Future.delayed(Duration(seconds: 2)); // Wait before retrying
+        }
+      }
+
+      if (doc != null && doc.exists && doc.data() != null) {
+        // Handle fontSize, which might be an int
+        var fontSizeValue = doc['fontSize'] ?? 'medium';
+        String fontSize = fontSizeValue is String
+            ? fontSizeValue
+            : fontSizeValue.toString(); // Convert int to String if necessary
         String language = doc['language'] ?? 'en';
+        print("Initial fetch - UID: ${user.uid}, fontSize: $fontSize, language: $language");
+
         setState(() {
           _fontScale = fontSize == 'small' ? 0.8 : fontSize == 'large' ? 1.2 : 1.0;
           _locale = Locale(language);
+          _isLoading = false; // Stop loading
+          print("Locale updated to: $_locale");
+        });
+      } else {
+        print("No document found for UID: ${user.uid}. Using default locale: $_locale");
+        setState(() {
+          _isLoading = false; // Stop loading
         });
       }
+
+      // Real-time listener for updates
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots()
+          .listen((doc) {
+        if (doc.exists && doc.data() != null) {
+          // Handle fontSize, which might be an int
+          var fontSizeValue = doc['fontSize'] ?? 'medium';
+          String fontSize = fontSizeValue is String
+              ? fontSizeValue
+              : fontSizeValue.toString(); // Convert int to String if necessary
+          String language = doc['language'] ?? 'en';
+          print("Real-time update - UID: ${user.uid}, fontSize: $fontSize, language: $language");
+
+          setState(() {
+            _fontScale = fontSize == 'small' ? 0.8 : fontSize == 'large' ? 1.2 : 1.0;
+            _locale = Locale(language);
+            print("Locale updated in real-time to: $_locale");
+          });
+        } else {
+          print("Real-time: No document found for UID: ${user.uid}");
+        }
+      }, onError: (error) {
+        print("Error listening to Firestore updates: $error");
+      });
+    } catch (e) {
+      print("Error fetching settings: $e");
+      setState(() {
+        _isLoading = false; // Stop loading even if there's an error
+      });
     }
-    // Listen for auth state changes to update settings
-    FirebaseAuth.instance.authStateChanges().listen((user) {
-      if (user != null) {
-        FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .snapshots()
-            .listen((doc) {
-          if (doc.exists) {
-            String fontSize = doc['fontSize'] ?? 'medium';
-            String language = doc['language'] ?? 'en';
-            setState(() {
-              _fontScale = fontSize == 'small' ? 0.8 : fontSize == 'large' ? 1.2 : 1.0;
-              _locale = Locale(language);
-            });
-          }
-        });
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(), // Show loading spinner
+          ),
+        ),
+      );
+    }
+
+    print("Building MyApp with locale: $_locale, fontScale: $_fontScale");
     return MaterialApp(
       title: 'Roti Planta',
       locale: _locale,
@@ -126,7 +166,7 @@ class _MyAppState extends State<MyApp> {
         ),
         textTheme: TextTheme(
           headlineLarge: TextStyle(
-            fontSize: 40 * _fontScale, // Adjusted for font scaling
+            fontSize: 40 * _fontScale,
             fontWeight: FontWeight.w900,
             color: Color(0xFF852745),
           ),
@@ -175,8 +215,6 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       home: LandingPage(),
-      //home: HomePage(),
-      //home: ProfilePage(),
     );
   }
 }

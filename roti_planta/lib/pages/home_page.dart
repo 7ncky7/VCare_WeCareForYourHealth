@@ -3,11 +3,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:roti_planta/pages/aichat_page.dart';
+import 'package:roti_planta/pages/aiemotional_page.dart';
+import 'package:roti_planta/pages/aimedicine_page.dart';
+import 'package:roti_planta/pages/aisymptoms_page.dart';
 import 'package:roti_planta/pages/application_page.dart';
+import 'package:roti_planta/pages/dietrec_page.dart';
 import 'package:roti_planta/pages/profile_page.dart';
-// import 'package:roti_planta/pages/settings_page.dart';
-import 'package:roti_planta/pages/test_page.dart';
-import 'package:url_launcher/url_launcher.dart'; // For initiating calls and emails
+import 'package:url_launcher/url_launcher.dart';
+import 'package:roti_planta/pages/minichat_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,7 +36,6 @@ class _HomePageState extends State<HomePage> {
     _fetchEmergencyContact();
   }
 
-  // Fetch user's family name from Firestore
   void _fetchFamilyName() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -48,7 +51,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Fetch care points from Firestore
   void _fetchCarePoints() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -64,7 +66,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Fetch emergency contact details (phone and email) from Firestore
   void _fetchEmergencyContact() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -74,14 +75,13 @@ class _HomePageState extends State<HomePage> {
           .get();
       if (doc.exists) {
         setState(() {
-          _emergencyPhoneNumber = doc['emergencyPhoneNumber'] ?? '1234567890'; // Default for testing
-          _emergencyEmail = doc['emergencyEmail'] ?? 'emergency@example.com'; // Default for testing
+          _emergencyPhoneNumber = doc['emergencyPhoneNumber'] ?? '1234567890';
+          _emergencyEmail = doc['emergencyEmail'] ?? 'emergency@example.com';
         });
       }
     }
   }
 
-  // Set greeting based on the time of day
   void _setGreeting(BuildContext context) {
     int hour = DateTime.now().hour;
     final localizations = AppLocalizations.of(context);
@@ -94,29 +94,26 @@ class _HomePageState extends State<HomePage> {
         _greeting = localizations.goodEvening;
       }
     } else {
-      _greeting = "Good Morning"; // Fallback
+      _greeting = "Good Morning";
     }
     setState(() {});
   }
 
-  // Handle bottom navigation bar taps
   void _onItemTapped(int index) {
     setState(() {
       _currentIndex = index;
     });
 
     if (index == 1) {
-      // Navigate to AI Chat page
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const TestPage(location: 'AI Chat')),
+        MaterialPageRoute(builder: (context) => const AiChatPage()),
       ).then((_) {
         setState(() {
           _currentIndex = 0;
         });
       });
     } else if (index == 2) {
-      // Navigate to Application page
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ApplicationPage()),
@@ -126,18 +123,16 @@ class _HomePageState extends State<HomePage> {
         });
       });
     } else if (index == 3) {
-      // Navigate to Diet page
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const DietPage()),
+        MaterialPageRoute(builder: (context) => const DietRecPage()),
       ).then((_) {
-        _fetchCarePoints(); // Refresh care points when returning from Diet page
+        _fetchCarePoints();
         setState(() {
           _currentIndex = 0;
         });
       });
     } else if (index == 4) {
-      // Navigate to Profile page
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ProfilePage()),
@@ -149,7 +144,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Function to initiate a phone call
   void _makePhoneCall(String phoneNumber) async {
     final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
     if (await canLaunchUrl(phoneUri)) {
@@ -161,31 +155,11 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Function to send an email
-  void _sendEmail(String email) async {
-    final Uri emailUri = Uri(
-      scheme: 'mailto',
-      path: email,
-      queryParameters: {
-        'subject': 'Emergency Notification',
-        'body': 'This is an emergency notification from Vcare Test.',
-      },
-    );
-    if (await canLaunchUrl(emailUri)) {
-      await launchUrl(emailUri);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not launch email')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     String currentDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
     String currentTime = DateFormat('HH:mm').format(DateTime.now());
 
-    // Set greeting after the first build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setGreeting(context);
     });
@@ -210,7 +184,6 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 1. Display Name, Greeting, and Care Points
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -218,7 +191,7 @@ class _HomePageState extends State<HomePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${localizations?.hi ?? 'Hi'} $_familyName',
+                              '${localizations?.hi ?? 'Hi'} $_familyName,',
                               style: Theme.of(context).textTheme.headlineLarge,
                             ),
                             Text(
@@ -244,10 +217,8 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                     const SizedBox(height: 20),
-
-                    // 2. Peach Card Box for Date, Time, and Health Metrics
                     Card(
-                      elevation: 7.0,  // Shadow for the card
+                      elevation: 7.0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15.0),
                       ),
@@ -257,44 +228,41 @@ class _HomePageState extends State<HomePage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Date and Time Row
                             Row(
                               children: [
                                 Text(
-                                  'Date: $currentDate',
-                                  //style: Theme.of(context).textTheme.bodySmall,
+                                  // 'Date: $currentDate',
+                                  '${localizations?.date ?? 'Date'}$currentDate',
                                   style: Theme.of(context).textTheme.titleMedium,
                                 ),
                                 const Spacer(),
                                 Text(
-                                  'Time: $currentTime',
-                                  //style: Theme.of(context).textTheme.bodySmall,
+                                  // 'Time: $currentTime',
+                                  '${localizations?.time ?? 'Time'}$currentTime',
                                   style: Theme.of(context).textTheme.titleMedium,
                                 ),
                               ],
                             ),
                             const SizedBox(height: 15),
-
-                            // 3. Three White Boxes for Health Metrics
                             Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,  //
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 _buildHealthBox(
                                   icon: 'assets/images/heartrate_icon.png',
                                   title: localizations?.heartRate ?? 'Heart Rate',
-                                  value: 'N/A',
+                                  value: '85bpm',
                                 ),
                                 SizedBox(height: 10),
                                 _buildHealthBox(
                                   icon: 'assets/images/steps_icon.png',
                                   title: localizations?.steps ?? 'Walk Steps',
-                                  value: 'N/A',
+                                  value: '3654',
                                 ),
                                 SizedBox(height: 10),
                                 _buildHealthBox(
-                                  icon: 'assets/images/bloodpressure_icon.png',
-                                  title: localizations?.bloodPressure ?? 'Blood Pressure',
-                                  value: 'N/A',
+                                  icon: 'assets/images/oxygen_icon.png',
+                                  title: localizations?.oxygenLevel ?? 'Oxygen Level',
+                                  value: '94%',
                                 ),
                               ],
                             ),
@@ -303,8 +271,6 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-
-                    // 4. Peach Card Box for Emergency Button
                     Card(
                       elevation: 7.0,
                       shape: RoundedRectangleBorder(
@@ -321,11 +287,9 @@ class _HomePageState extends State<HomePage> {
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 10),
-                            // Row for Call and Email Boxes
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                // Call Box
                                 Expanded(
                                   child: GestureDetector(
                                     onTap: () {
@@ -338,8 +302,8 @@ class _HomePageState extends State<HomePage> {
                                       }
                                     },
                                     child: Container(
-                                      height: 100,
-                                      margin: const EdgeInsets.only(right: 7.5), // Space between the two boxes
+                                      height: 110,
+                                      margin: const EdgeInsets.only(right: 7.5),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(15),
@@ -356,57 +320,17 @@ class _HomePageState extends State<HomePage> {
                                         children: [
                                           Image.asset(
                                             'assets/images/phone_icon.png',
-                                            height: 50,
+                                            height: 70,
                                             color: const Color(0xFF852745),
                                           ),
                                           const SizedBox(height: 5),
                                           Text(
                                             localizations?.call ?? 'Call',
-                                            style: Theme.of(context).textTheme.bodySmall,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                // Email Box
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      if (_emergencyEmail != null) {
-                                        _sendEmail(_emergencyEmail!);
-                                      } else {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('No emergency email available')),
-                                        );
-                                      }
-                                    },
-                                    child: Container(
-                                      height: 100,
-                                      margin: const EdgeInsets.only(left: 7.5), // Space between the two boxes
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(15),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.grey.withOpacity(0.2),
-                                            spreadRadius: 2,
-                                            blurRadius: 5,
-                                          ),
-                                        ],
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Image.asset(
-                                            'assets/images/message_icon.png',
-                                            height: 50,
-                                            color: const Color(0xFF852745),
-                                          ),
-                                          const SizedBox(height: 5),
-                                          Text(
-                                            localizations?.email ?? 'Email',
-                                            style: Theme.of(context).textTheme.bodySmall,
+                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: const Color(0xFF852745),
+                                                  fontSize: 16,
+                                                ),
                                           ),
                                         ],
                                       ),
@@ -426,8 +350,64 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-
-      // 5. Bottom Navigation Bar
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => Container(
+              height: MediaQuery.of(context).size.height * 0.8,
+              child: MiniChatWidget(
+                currentPage: "HomePage",
+                onNavigateToProfile: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ProfilePage()),
+                  );
+                },
+                onNavigateToApps: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ApplicationPage()),
+                  );
+                },
+                onNavigateToDiet: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const DietRecPage()),
+                  );
+                },
+                onNavigateToAiChat: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AiChatPage()),
+                  );
+                },
+                onNavigateToEmotionalSupport: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AiEmotionalPage()),
+                  );
+                },
+                onNavigateToCheckSymptoms: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AiSymptomsPage()),
+                  );
+                },
+                onNavigateToMedicineRecommendation: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AiMedicinePage()),
+                  );
+                },
+              ),
+            ),
+          );
+        },
+        child: Icon(Icons.chat, color: Colors.white),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onItemTapped,
@@ -470,7 +450,7 @@ class _HomePageState extends State<HomePage> {
                   ),
               ],
             ),
-            label: localizations?.aiChat ?? 'AI CHAT',
+            label: localizations?.aiChatNavBar ?? 'AI CHAT',
           ),
           BottomNavigationBarItem(
             icon: Stack(
@@ -527,11 +507,13 @@ class _HomePageState extends State<HomePage> {
             label: localizations?.profile ?? 'PROFILE',
           ),
         ],
+        selectedLabelStyle: TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
 
-  // Widget for Health Metric Boxes
   Widget _buildHealthBox({required String icon, required String title, required String value}) {
     return Container(
       width: 350,
@@ -559,8 +541,8 @@ class _HomePageState extends State<HomePage> {
           ),
           Expanded(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,  //
-              crossAxisAlignment: CrossAxisAlignment.center,  //
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   value,
@@ -579,40 +561,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// Placeholder for DietPage (already defined in your previous code)
-class DietPage extends StatelessWidget {
-  const DietPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Diet'),
-      ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () async {
-            User? user = FirebaseAuth.instance.currentUser;
-            if (user != null) {
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(user.uid)
-                  .update({
-                'carePoints': FieldValue.increment(1),
-              });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Diet recorded! Care Points updated.')),
-              );
-            }
-          },
-          child: const Text('Record Diet'),
-        ),
       ),
     );
   }
