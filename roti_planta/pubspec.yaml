@@ -40,12 +40,12 @@ dependencies:
   cloud_firestore: ^5.6.5
   fluttertoast: ^8.2.12
   intl: ^0.19.0
-  flutter_localizations: # Add this dependency
-    sdk: flutter
   url_launcher: ^6.3.1
   http: ^1.3.0
   file_picker: ^9.2.1
   path_provider: ^2.1.5
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
