@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:roti_planta/appconfig.dart';
-import 'package:roti_planta/pages/aichat_page.dart';
 import 'package:roti_planta/pages/application_page.dart';
 
 class ReportDiagPage extends StatefulWidget {

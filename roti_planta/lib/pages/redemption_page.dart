@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:roti_planta/pages/aichat_page.dart';
 import 'package:roti_planta/pages/application_page.dart';
 
 class RedemptionPage extends StatefulWidget {
