@@ -3,8 +3,8 @@ VCare - We Care For Your Health
 By: Team Roti Planta
 
 -----------------------------------------------------------------------------------------------------------------
-Domain 2: AI & Data Science
-CASE STUDY 3: AI-Powered Healthcare Assistant for Disease Management
+## Domain 2: AI & Data Science
+## CASE STUDY 3: AI-Powered Healthcare Assistant for Disease Management
 -----------------------------------------------------------------------------------------------------------------
 
 VCare is an AI-powered healthcare mobile application developed by Team Roti Planta.
