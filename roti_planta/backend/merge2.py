@@ -27,8 +27,8 @@ if not os.path.exists(UPLOAD_FOLDER):
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Project ID and API Key
-PROJECT_ID = os.getenv("PROJECT_ID", "proj_bca796bf61270c7106847b69")
-API_KEY = os.getenv("JAMAI_API_KEY", "jamai_pat_ca82cf0c43e5a79337eb74534d5da12e782489be84e9465e")
+PROJECT_ID = os.getenv("PROJECT_ID", "proj_be2c8d9620ef80fd7a193afa")
+API_KEY = os.getenv("JAMAI_API_KEY", "jamai_pat_328b45b69108c037c231e0f5574c5eba79a7f63788f25ecb")
 
 # Initialize Firebase
 def initialize_firebase():
